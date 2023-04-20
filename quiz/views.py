@@ -50,7 +50,7 @@ class Users(APIView):
                 #         payData = pay 
                 #         break
             except Exception as e:
-                return Response({"status":500,"msg":'user not exists'})
+                pass
             serializer=UserSerializer(obj)
             
             return Response({"status":status.HTTP_200_OK,"data":{"user":serializer.data,"paymetDetails":payData}})
