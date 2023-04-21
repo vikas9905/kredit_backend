@@ -88,10 +88,10 @@ WSGI_APPLICATION = 'kredit_backend.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': BASE_DIR / 'db.sqlite3',
-    # }
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
     # 'default': {
     #         'ENGINE': 'django.db.backends.postgresql',
     #         'HOST': '/cloudsql/quizgame-django:asia-south2:quizgame-database',
@@ -106,13 +106,13 @@ DATABASES = {
     #     'PASSWORD': os.environ.get('DEV_DB_PASS'),
     #     'NAME': os.environ.get('DEV_DB_NAME'),
     # },
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.environ.get('PROD_DB_HOST'),
-        'USER': os.environ.get('PROD_DB_USER'),
-        'PASSWORD': os.environ.get('PROD_DB_PASS'),
-        'NAME': os.environ.get('PROD_DB_NAME'),
-    }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql',
+    #     'HOST': os.environ.get('PROD_DB_HOST'),
+    #     'USER': os.environ.get('PROD_DB_USER'),
+    #     'PASSWORD': os.environ.get('PROD_DB_PASS'),
+    #     'NAME': os.environ.get('PROD_DB_NAME'),
+    # }
 }
 
 
