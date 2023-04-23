@@ -32,5 +32,8 @@ urlpatterns = [
     path('user/<int:user_id>/history/',views.UserHistory.as_view()),
     path('order/',views.OrderDetail.as_view()),
     path('leaderboard/',views.LeaderBoard.as_view()),
+    path('delete/',views.DeleteAccount.as_view()),
+    path('predict/',views.Prediction.as_view()),
+    path('predict/<int:id>',views.Prediction.as_view())
     # path('user/id')
 ]  + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

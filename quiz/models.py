@@ -86,3 +86,16 @@ class CreditDebit(models.Model):
     debit = models.IntegerField(default=0)
     order_details = models.ForeignKey(OrderDetails,null=True,blank=True,on_delete=models.CASCADE)
     created_at = models.DateField(default=timezone.now)
+
+class SavedAnswers(models.Model):
+    user_id = models.ForeignKey(User,on_delete=models.CASCADE)
+    quiz_id = models.ForeignKey(Quizs,on_delete=models.CASCADE)
+    qid = models.ForeignKey(Question,on_delete=models.CASCADE,null=True,blank=True)
+    optionId = models.ForeignKey(Options,on_delete=models.CASCADE,null=True,blank=True)
+
+class DeleteUserRequest(models.Model):
+    email = models.CharField(max_length=100)
+    name = models.CharField(max_length=30)
+    reason =models.CharField(max_length=200)
+    feedback = models.CharField(max_length=200)
+    

@@ -1,6 +1,6 @@
 from dataclasses import fields
 from rest_framework import serializers
-from .models import User,PaymentDetails,PaymentProvider,UserPaymentOptions,Question,QuestionTag,Answer,OrderDetails,Options,Quizs,QuizTaken,CreditDebit
+from .models import User,PaymentDetails,PaymentProvider,UserPaymentOptions,Question,QuestionTag,Answer,OrderDetails,Options,Quizs,QuizTaken,CreditDebit,SavedAnswers,DeleteUserRequest
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model=User
@@ -52,6 +52,14 @@ class QuizTakenSerializer(serializers.ModelSerializer):
 class CreditDebitSerializer(serializers.ModelSerializer):
     class Meta:
         model = CreditDebit
+        fields = '__all__'
+class SavedAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedAnswers
+        fields = '__all__'
+class DeleteUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DeleteUserRequest
         fields = '__all__'
 
 

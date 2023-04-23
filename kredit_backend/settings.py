@@ -27,15 +27,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['192.168.43.140','vikash-mishra','127.0.0.1','http://localhost:80','*']
+ALLOWED_HOSTS = ['192.168.1.5']
 
 
-CORS_ORIGIN_ALLOW_ALL = True
-CORS_ORIGIN_WHITELIST = (
-       'http://localhost:80',
-)
+
+# CORS_ORIGIN_WHITELIST = (
+#        'http://localhost:80',
+# )
 
 
 # Application definition
@@ -51,6 +51,12 @@ INSTALLED_APPS = [
     'quiz',
     'corsheaders',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

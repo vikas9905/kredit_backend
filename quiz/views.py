@@ -7,12 +7,14 @@ from rest_framework import status
 from rest_framework.renderers import JSONRenderer
 from django.http import HttpResponse
 import json
-from .models import User,UserPaymentOptions,PaymentDetails,PaymentProvider,OrderDetails,Question,QuestionTag,Options,Answer,QuizTaken,Quizs,CreditDebit
-from .serializer import UserSerializer,UserPaymentOptionsSerializer,PaymentDetailsSerializer,PaymentProviderSerializer,OrderSerializer,QuestionSerializer,QuestionTagSerializer,OptionSerializer,AnswerSerializer,QuizSerializer,QuizTakenSerializer,CreditDebitSerializer
+from .models import User,UserPaymentOptions,PaymentDetails,PaymentProvider,OrderDetails,Question,QuestionTag,Options,Answer,QuizTaken,Quizs,CreditDebit,SavedAnswers,DeleteUserRequest
+from .serializer import UserSerializer,UserPaymentOptionsSerializer,PaymentDetailsSerializer,PaymentProviderSerializer,OrderSerializer,QuestionSerializer,QuestionTagSerializer,OptionSerializer,AnswerSerializer,QuizSerializer,QuizTakenSerializer,CreditDebitSerializer,SavedAnswerSerializer,DeleteUserSerializer
 from django.http import JsonResponse
 from django.db.models import Sum
 from django.db.models import F, Count, Value
 from django.db.models import Q
+from django.template import loader
+
 class Users(APIView):
     def post(self,request,format=None):
         data=request.data
@@ -56,7 +58,7 @@ class Users(APIView):
             return Response({"status":status.HTTP_200_OK,"data":{"user":serializer.data,"paymetDetails":payData}})
         except Exception as e:
             print(e)
-            return Response({"status":500,"msg":"Failed"})
+            return Response({"status":"500","msg":"Failed"})
 
     def put(self,request,format=None):
         data = request.data
@@ -137,7 +139,7 @@ class Answers(APIView):
                     CreditDebit.objects.create(user_id=user_ob,credit=coin)
                 return Response({"status":status.HTTP_200_OK, "data": {"correct":correct,"wrong":len(answer) - correct,"coin":coin}})
             except Exception as e:
-                return Response({"status":500,data:[]})
+                return Response({"status":"500","data":[]})
 
 class Quiz(APIView):
     def get(self,request,qid=None,type=None,format=None):
@@ -175,7 +177,7 @@ class Quiz(APIView):
                 pass
             except Exception as e:
                 print(e)
-                return Response({"status":500, "data": []})
+                return Response({"status":"500", "data": []})
                 pass
 class PaymentDetail(APIView):
     def get(self,request,id,format=None):
@@ -303,9 +305,9 @@ class OrderDetail(APIView):
                 order_obj = OrderDetails.objects.get(order_id = data.get('order_id'));
                 CreditDebit.objects.create(user_id=user_obj,debit=ammount_request,order_details=order_obj)
                 return Response({"status":status.HTTP_200_OK, "data": "ordered"})
-            return Response({"status":500, "data": "failed"})
+            return Response({"status":"500", "data": "failed"})
         except Exception as e:
-            return  Response({"status":500, "data": e})
+            return  Response({"status":"500", "data": e})
 
 class LeaderBoard(APIView):
     def get(self,request,format=None):
@@ -322,6 +324,91 @@ class LeaderBoard(APIView):
             return Response({"status":status.HTTP_200_OK, "data": data})  
         except Exception as e:
             return Response({"status":status.HTTP_200_OK, "data": e})  
+class DeleteAccount(APIView):
+    def get(self,request,format=None):
+        name = request.GET.get('name',None)
+        email = request.GET.get('email',None)
+        reason = request.GET.get('reason',None)
+        feedback = request.GET.get('feedback',None)
+        print(name,email,reason,feedback)
+        try:
+            obj = DeleteUserRequest.objects.create(name=name,email=email,reason=reason,feedback=feedback)
+            if obj != None:
+                return Response("Request submitted, after verification your account will delete")
+            else:
+                pass
+                # return Response("Data is not valid")
+        except Exception as e:
+            pass
+            # return Response("Some Error occured,please try later");
+        template = loader.get_template('deleteForm.html')
+        return HttpResponse(template.render())
+    def post(self,request,format=None):
+        data = request.data
+        try:
+            serail = DeleteUserSerializer(data=data)
+            if serail.is_valid():
+                serail.save()
+                return Response("Request submitted, after verification your account will delete")
+            else:
+                return Response("Data is not valid")
+        except Exception as e:
+            return Response("Some Error occured,please try later");
+        
+class Prediction(APIView):
+    def get(self,request,id,format=None):
+        if id != None:
+            try:
+                user_obj = User.objects.get(user_id=id)
+                quiz = Quizs.objects.filter(quiz_type='predict')
+                quiz_data = QuizSerializer(quiz,many=True).data
+
+                for obj in quiz_data:
+                    try:
+                       
+                        quizObj = Quizs.objects.get(id=obj['id'])
+                        isTaken = QuizTaken.objects.filter(user_id=user_obj,quiz_id=quizObj)
+                        if not isTaken:
+                            obj['taken'] = False
+                        else:
+                            obj['taken'] = True
+                    except Exception as e:
+                        obj['taken'] = False
+                return Response({"status":status.HTTP_200_OK, "data": quiz_data})
+            except Exception as e:
+                return Response({"status":"500","msg":"some error occured"})
+
+    def post(self,request,format=None):
+        data = request.data
+        print(data)
+        answer = data.get('answer',None)
+        user_id = data.get('user_id',None)
+        quiz_id = data.get('quiz_id',None)
+        if answer == None:
+            return  Response({"status":"500","data": []})
+        else:
+            
+            try:
+                userObj = User.objects.get(user_id=user_id)
+                quizObj = Quizs.objects.get(id = quiz_id)
+                for obj in answer:
+                    qid = int(obj.get('qid',None))
+                    oid = int(obj.get('ans',None))
+                    quesObj = Question.objects.get(id=qid)
+                    optionObj = Options.objects.get(id=oid)
+                    SavedAnswers.objects.create(user_id=userObj,quiz_id=quizObj,qid=quesObj,optionId=optionObj)
+                
+                user = UserSerializer(userObj).data
+                allowed = user.get('quiz_allowed',3)
+                if user.get('quiz_allowed',0)>0:
+                    User.objects.filter(user_id = user_id).update(quiz_allowed = allowed-1)
+                    QuizTaken.objects.create(user_id=userObj,quiz_id=quizObj,correct_ans=0,incorrect_ans=0,earned_coins=0)
+                # QuizTaken.objects.create(data=quizsTaken)
+                    # CreditDebit.objects.create(user_id=user_ob,credit=coin)
+                return Response({"status":status.HTTP_200_OK, "data": "ans saved success"})
+            except Exception as e:
+                print(e)
+                return Response({"status":"500","data":[]})
 
 
 
